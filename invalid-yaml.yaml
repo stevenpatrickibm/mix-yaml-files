@@ -1,43 +1,33 @@
---- 
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
-metadata: 
+metadata:
   name: md-lint-pipeline
-spec: 
-  params: 
-    - 
-      description: "Source code repo"
-      name: source-repo
+spec:
+  params:
+    - name: source-repo
       type: string
-  tasks: 
-    - 
-      name: clone-respository
-      params: 
-        - 
-          name: url
-          value:   $(params.source-repo)
-      taskRef 
+      description: Source code repo
+  workspaces:
+    - name: shared-workspace
+  tasks:
+    - name: clone-respository
+      taskRef:
         kind: ClusterTask
         name: git-clone
-      workspaces: 
-        - 
-          name: output
+      params:
+        - name: url
+          value: "$(params.source-repo)"
+      workspaces:
+        - name: output
           workspace: shared-workspace
-    - 
-      name: lint-markdown
-      params: 
-        - 
-          name: args
-          value: 
-            - "."
-      runAfter: 
+    - name: lint-markdown
+      runAfter:
         - clone-respository
-      taskRef: 
+      taskRef:
         name: markdown-lint
-      workspaces: 
-        - 
-          name: shared-workspace
+      workspaces:
+        - name: shared-workspace
           workspace: shared-workspace
-  workspaces: 
-    - 
-      name: shared-workspace
+      params:
+        - name: args
+          value: ["."]
